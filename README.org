@@ -1,4 +1,8 @@
-# EKF-RLFJ-Robot
+# Created 2022-08-11 Thu 10:15
+#+title: EKF-RLFJ-Robot
+#+author: CC
+*FORK CHANGE:* Trying to apply the algorithm on a 7link Kinova Gen3 robot.
+
 An Extended Kalman Filter for Real-Time Estimation and Control of a Rigid-Link Flexible-Joint Manipulator
 
 High performance tracking of an industrial robot depends on accurate expression of manipulator dynamics. When a robot has flexible joints efficient model parametrization will be difficult to achieve. In this project an extended Kalman filter (EKF) observer to estimate manipulator states is presented.
