@@ -12,25 +12,28 @@ R=r^2*eye(n);        % covariance of measurement
 h=@(x)[x];  % measurement equation
 
 %% Simulation
-N = 100;
+% N = 100;
+time = 1;
 % init state
 s = zeros(n, 1);
 x = s + q * randn(n, 1);
-torque = zeros(7, 1);
+torque = @(t) ones(7, 1) * sin(t);
 % init state cov
 P = zeros(n); % cov
-% [t,sV] = ode45(@(t,y) deriv_state(y, rob, torque), [0,time], s);
+[t,sV] = ode45(@(t,y) deriv_state(y, rob, torque(t)), [0,time], s);
+N = length(t);
 % state estimation
 xV = zeros(n, N);
 % state actual
 xV = zeros(n, N);
 % measurement
 zV = zeros(n, N);
-t = linspace(0,1, N);
-sV = zeros(n, N);
+t = linspace(0,0.5, N);
+% sV = zeros(n, N);
+sV = sV';
 for k=2:N
     f = @(x)[next_state(x, rob, torque, k, t)];
-    sV(:, k) = f(sV(:, k-1)) + q * randn(n, 1);
+    % sV(:, k) = f(sV(:, k-1)) + q * randn(n, 1);
     % disp(sV(:,k))
     z = h(sV(:, k)) + r * randn(n, 1); % measure
     zV(:, k) = z;
@@ -45,3 +48,13 @@ plot(t, mean(zV - sV));
 legend(["error after filtering", "error before filtering"]);
 title("error comparison")
 hold off;
+% for i=2:15
+% figure(i);
+% hold on;
+% plot(t, zV(i-1,:));
+% plot(t, sV(i-1,:));
+% plot(t, xV(i-1,:));
+% legend(["raw measurement", "ground truth", "estimation"]);
+% title("state "+ (i-1));
+% hold off;
+% end
