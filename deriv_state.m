@@ -2,6 +2,8 @@ function dydt = deriv_state(x, model, fs, torque)
 num_joint = length(x) / 2;
 q = x(1:num_joint);
 qd = x(num_joint+1:end);
+% disp(qd)
+% disp(torque)
 M = massMatrix(model, q); % (7, 7)
 C = velocityProduct(model, q, qd); % (1, 7)
 G = gravityTorque(model, q); % (1, 7)
