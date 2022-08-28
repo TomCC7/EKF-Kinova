@@ -16,6 +16,7 @@ P12=P*H';                   %cross covariance
 % K=P12*inv(H*P12+R);       %Kalman filter gain
 % x=x1+K*(z-z1);            %state estimate
 % P=P-K*P12';               %state covariance matrix
+% disp(H*P12 + R)
 R=chol(H*P12+R);            %Cholesky factorization
 U=P12/R;                    %K=U/R'; Faster because of back substitution
 x=x1+U*(R'\(z-z1));         %Back substitution to get state update

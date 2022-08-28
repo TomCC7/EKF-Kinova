@@ -1,30 +1,41 @@
 %% Based on experiment data
 %% Setup
 % load data
-data = load('../data/covariance/12345/SinExperiment_1661463385.npz.mat');
-t_exp = data.frame_ts - data.frame_ts(1);
-torque_exp = data.torque;
-state_exp = [data.feedback_pos, data.feedback_vel];
+data_path = dir('../data/covariance/12345/*.mat');
+n_data = length(data_path);
+data = cell(n_data, 1);
+state_exp = cell(n_data, 1);
+for i = 1:n_data
+    data{i} = load(fullfile(data_path(i).folder, data_path(i).name));
+    data{i}.frame_ts = double(data{i}.frame_ts - data{i}.frame_ts(1));
+    data{i}.torque = double(data{i}.torque);
+    state_exp{i} = double([data{i}.feedback_pos, data{i}.feedback_vel]);
+end
+t_exp = data{1}.frame_ts;
+torque_exp = data{1}.torque;
 % load model
 n=14; %number of state
 params = rob_model();
 rob = modify_robot(importrobot("gen3.urdf"), params, n/2);
 fs = params(:, end-2:end);
-q=5e-5;    %std of process
-r=5e-5;    %std of measurement
+q=1e-2;       %std of process
 Q=q^2*eye(n); % covariance of process
-R=r^2*eye(n);        % covariance of measurement
-
+r = 1e-2;
+R = diag([2.26300904e-04 1.37933811e-03 9.08683309e-05 4.36212329e-06 ...
+ 4.90829354e-05 5.36947627e-05 6.19376190e-05 ...
+ 5.86390899e-05 2.65790298e-03 6.49749867e-05 5.87998681e-05 ...
+ 2.87742624e-05 2.16910833e-05 2.80170833e-05]) * 10e3/2;
 h=@(x)(x);  % measurement equation
 
 %% Simulation
+start_time = 1;
 time = 1;
 step = 0.001;
 N = ceil(time / step);
-t = linspace(0, time, N);
+t = linspace(start_time, start_time + time, N);
 torque = @(t) get_torque(t, t_exp, torque_exp);
 % init state
-s = zeros(n, 1);
+s = interp1(t_exp, state_exp{1}, start_time)';
 x = s + q * randn(n, 1);
 amp = 2 * pi / 8;
 % init state cov
@@ -36,11 +47,16 @@ xV = zeros(n, N);
 % measurement
 zV = zeros(n, N);
 sV = sV';
-sV_interp = zeros(n, N);
+state_interp = zeros(n_data, n, N);
+sim_interp = zeros(n, N);
 for k=2:N
     f = @(x)[next_state(x, rob, fs, torque, k, t)];
-    sV_interp(:, k) = interp1(t_ode, sV', t(k));
-    z = h(sV_interp(:, k)) + r * randn(n, 1); % measure
+    for i = 1:n_data
+        state_interp(i, :, k) = interp1(data{i}.frame_ts, state_exp{i}, t(k));
+    end
+    sim_interp(:, k) = interp1(t_ode, sV', t(k) - start_time);
+    z = h(sim_interp(:, k)) + r * randn(n, 1); % measure
+%     z = state_interp(:, k);
     zV(:, k) = z;
     [x, P] = ekf(f, x, P, h, z, Q, R);
     xV(:, k) = x;
@@ -51,17 +67,19 @@ for i=2:15
 figure(i);
 hold on;
 plot(t, zV(i-1,:));
-plot(t, sV_interp(i-1,:));
 plot(t, xV(i-1,:));
-plot(t, interp1(t_exp, state_exp(:, i-1), t))
-legend(["raw measurement", "ground truth", "estimation", "experiment measurement"]);
+plot(t, sim_interp(i-1,:));
+for j=1:n_data
+    plot(t, reshape(state_interp(j, i-1, :),1,[]));
+end
+legend(["raw measurement", "estimation", "simulation"]);
 title("state "+ (i-1));
 hold off;
 end
 figure(1);
 hold on;
-plot(t, mean(xV - sV_interp));
-plot(t, mean(zV - sV_interp));
+plot(t, mean(xV - sim_interp));
+plot(t, mean(zV - sim_interp));
 legend(["error after filtering", "error before filtering"]);
 title("error comparison")
 hold off;

@@ -25,8 +25,6 @@ torque = @(t) ones(7, 1) * sin(t) * amp;
 P = zeros(n); % cov
 [t_ode,sV] = ode45(@(t,y) deriv_state(y, rob, fs, torque(t)), [0,time], s);
 N = length(t);
-% state estimation
-xV = zeros(n, N);
 % state actual
 xV = zeros(n, N);
 % measurement
