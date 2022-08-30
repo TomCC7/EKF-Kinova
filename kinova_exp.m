@@ -18,13 +18,14 @@ n=14; %number of state
 params = rob_model();
 rob = modify_robot(importrobot("gen3.urdf"), params, n/2);
 fs = params(:, end-2:end);
-q=1e-2;       %std of process
+q=1e-8;       %std of process
 Q=q^2*eye(n); % covariance of process
-r = 1e-2;
-R = diag([2.26300904e-04 1.37933811e-03 9.08683309e-05 4.36212329e-06 ...
+r_diag = [2.26300904e-04 1.37933811e-03 9.08683309e-05 4.36212329e-06 ...
  4.90829354e-05 5.36947627e-05 6.19376190e-05 ...
  5.86390899e-05 2.65790298e-03 6.49749867e-05 5.87998681e-05 ...
- 2.87742624e-05 2.16910833e-05 2.80170833e-05]) * 10e3/2;
+ 2.87742624e-05 2.16910833e-05 2.80170833e-05];
+% r_diag = r_diag;
+R = diag(r_diag.^2);
 h=@(x)(x);  % measurement equation
 
 %% Simulation
@@ -55,7 +56,7 @@ for k=2:N
         state_interp(i, :, k) = interp1(data{i}.frame_ts, state_exp{i}, t(k));
     end
     sim_interp(:, k) = interp1(t_ode, sV', t(k) - start_time);
-    z = h(sim_interp(:, k)) + r * randn(n, 1); % measure
+    z = h(sim_interp(:, k)) + r_diag * randn(n, 1); % measure
 %     z = state_interp(:, k);
     zV(:, k) = z;
     [x, P] = ekf(f, x, P, h, z, Q, R);
