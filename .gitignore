@@ -1,0 +1,4 @@
+.ob-jupyter/
+*.eps
+*.pdf
+*.svg

@@ -1,7 +1,7 @@
 %% Based on experiment data
 %% Setup
 % load data
-data_path = dir('../data/covariance/coeff_2/*.mat');
+data_path = dir('../data/covariance/coeff_4_cutted/*.mat');
 n_data = length(data_path);
 data = cell(n_data, 1);
 state_exp = cell(n_data, 1);
@@ -29,7 +29,7 @@ R = diag(r_diag.^2);
 h=@(x)(x);  % measurement equation
 
 %% Simulation
-start_time = 0.5;
+start_time = 0;
 time = 1;
 step = 0.001;
 N = ceil(time / step);
