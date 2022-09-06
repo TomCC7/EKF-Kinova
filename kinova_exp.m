@@ -1,7 +1,7 @@
 %% Based on experiment data
 %% Setup
 % load data
-data_path = dir('../data/covariance/coeff_4_cutted/*.mat');
+data_path = dir('../data/covariance/coeff_4_cutted/*.npz');
 n_data = length(data_path);
 data = cell(n_data, 1);
 state_exp = cell(n_data, 1);
