@@ -45,11 +45,13 @@ P = zeros(n); % cov
 N = length(t);
 % state estimation
 xV = zeros(n, N);
+xV(:, 1) = x;
 % measurement
 zV = zeros(n, N);
 sV = sV';
 state_interp = zeros(n_data, n, N);
 sim_interp = zeros(n, N);
+%% EKF
 for k=2:N
     f = @(x)[next_state(x, rob, fs, torque, k, t)];
     for i = 1:n_data
@@ -61,19 +63,20 @@ for k=2:N
     zV(:, k) = z;
     [x, P] = ekf(f, x, P, h, z, Q, R);
     xV(:, k) = x;
+    disp(k)
 end
 
 %% plot
-figure(1);
+fig1 = figure(1);
 a = subplot(7,2, 1);
 for i=2:8
     a = subplot(7,2, 2*(i-1)-1);
     hold on;
-    plot(t, zV(i-1,:), 'b');
-    plot(t, xV(i-1,:), 'r', 'LineWidth',5);
-    plot(t, sim_interp(i-1,:), 'k');
+    % plot(t, zV(i-1,:), 'b');
+    % plot(t, xV(i-1,:), 'r', 'LineWidth',5);
+    plot(t, sim_interp(i-1,:), 'r--');
     for j=1:n_data
-        plot(t, reshape(state_interp(j, i-1, :),1,[]), '--');
+        plot(t, reshape(state_interp(j, i-1, :),1,[]), 'b');
     end
     title("position "+ (i-1));
     hold off;
@@ -82,17 +85,18 @@ end
 for i=9:15
     a = subplot(7,2, 2*(i-8));
     hold on;
-    plot(t, zV(i-1,:), 'b');
-    plot(t, xV(i-1,:), 'r', 'LineWidth',2);
-    plot(t, sim_interp(i-1,:), 'k');
+    % plot(t, zV(i-1,:), 'b');
+    % plot(t, xV(i-1,:), 'r', 'LineWidth',2);
+    plot(t, sim_interp(i-1,:), 'r--');
     for j=1:n_data
-        plot(t, reshape(state_interp(j, i-1, :),1,[]), '--');
+        plot(t, reshape(state_interp(j, i-1, :),1,[]), 'b');
     end
     title("velocity "+ (i-8));
     hold off;
 end
-legend(a, ["raw measurement", "estimation", "simulation"]);
-figure(2)
+legend(a, ["simulation", "experiment data"]);
+sgtitle("Simulation data compared to experiment data: Iter 2")
+fig2 = figure(2);
 hold on;
 plot(t, mean(xV - sim_interp));
 plot(t, mean(zV - sim_interp));
