@@ -1,7 +1,7 @@
 %% Based on experiment data
 %% Setup
 % load data
-data_path = dir('../data/covariance/coeff_4_cutted/*.npz');
+data_path = dir('../data/covariance/coeff_4_cutted/*.mat');
 n_data = length(data_path);
 data = cell(n_data, 1);
 state_exp = cell(n_data, 1);
@@ -18,7 +18,7 @@ n=14; %number of state
 params = rob_model();
 rob = modify_robot(importrobot("gen3.urdf"), params, n/2);
 fs = params(:, end-2:end);
-q=1e-4;       %std of process
+q=1e-6;       %std of process
 Q=q^2*eye(n); % covariance of process
 r_diag = [2.26300904e-04 1.37933811e-03 9.08683309e-05 4.36212329e-06 ...
           4.90829354e-05 5.36947627e-05 6.19376190e-05 ...
@@ -57,7 +57,7 @@ for k=2:N
     end
     sim_interp(:, k) = interp1(t_ode, sV', t(k) - start_time);
     % z = h(sim_interp(:, k)) + r_diag * randn(n, 1); % measure
-    z = state_interp(randi(n_data),:, k)';
+    z = state_interp(1, :, k)';
     zV(:, k) = z;
     [x, P] = ekf(f, x, P, h, z, Q, R);
     xV(:, k) = x;
